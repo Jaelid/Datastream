@@ -124,7 +124,7 @@ class Datastream:
             print(traceback.print_exc(limit=5))
             return None
             
-    def get_data(self, tickers, fields=None, start='', end='', freq='', kind=1, retName=False):
+    def get_data(self, tickers, fields=None, start='', end='', freq='', kind=1, retName=False, timeout=100):
         """This Function processes a single JSON format request to provide
            data response from DSWS web in the form of python Dataframe
            
@@ -151,7 +151,7 @@ class Datastream:
             fields = []
         
         try:
-            req = self.post_user_request(tickers, fields, start, end, freq, kind, retName)
+            req = self.post_user_request(tickers, fields, start, end, freq, kind, retName, timeout=timeout)
             datarequest = DataRequest()
             if (self.tokenResp == None):
                 raise Exception("Invalid Token Value")
@@ -166,13 +166,16 @@ class Datastream:
                 #Post the requests to get response in json format
                 if self._proxy:
                     json_Response = requests.post(getData_url, json=json_dataRequest,
-                                                  proxies=self._proxy).json()
+                                                  proxies=self._proxy,
+                                                  timeout=timeout).json()
                 elif self._sslCer:
                     json_Response = requests.post(getData_url, json=json_dataRequest,
-                                                  verify=self._sslCer).json()
+                                                  verify=self._sslCer,
+                                                  timeout=timeout).json()
                 else:
                     json_Response = requests.post(getData_url, json=json_dataRequest,
-                                                  verify=self.certfile).json()
+                                                  verify=self.certfile,
+                                                  timeout=timeout).json()
                 #print(json_Response)
                 #format the JSON response into readable table
                 if 'DataResponse' in json_Response:
@@ -197,7 +200,7 @@ class Datastream:
             print(traceback.print_exc(limit=5))
             return None
     
-    def get_bundle_data(self, bundleRequest=None, retName=False):
+    def get_bundle_data(self, bundleRequest=None, retName=False, timeout=timeout):
         """This Function processes a multiple JSON format data requests to provide
            data response from DSWS web in the form of python Dataframe.
            Use post_user_request to form each JSON data request and append to a List
@@ -237,10 +240,12 @@ class Datastream:
                                                   proxies=self._proxy).json()
                  elif self._sslCer:
                      json_Response = requests.post(getDataBundle_url, json=json_dataRequest,
-                                                  verify=self.sslCer).json()
+                                                  verify=self.sslCer,
+                                                  timeout=timeout).json()
                  else:
                      json_Response = requests.post(getDataBundle_url, json=json_dataRequest,
-                                                  verify=self.certfile).json()
+                                                  verify=self.certfile,
+                                                  timeout=timeout).json()
                  #print(json_Response)
                  if 'DataResponses' in json_Response:
                      response_dataframe = self._format_bundle_response(json_Response)
@@ -267,7 +272,7 @@ class Datastream:
 #------------------------------------------------------- 
 #-------------------------------------------------------             
 #-------Helper Functions---------------------------------------------------
-    def _get_token(self, isProxy=False):
+    def _get_token(self, isProxy=False, timeout=100):
         token_url = self.url + "GetToken"
         try:
             propties = []
@@ -286,12 +291,13 @@ class Datastream:
             #Post the token request to get response in json format
             if self._proxy:
                 json_Response = requests.post(token_url, json=json_tokenReq,
-                                                  proxies=self._proxy, timeout=10).json()
+                                                  proxies=self._proxy, timeout=timeout).json()
             elif self._sslCer:
                 json_Response = requests.post(token_url, json=json_tokenReq,
-                                                  verify=self._sslCer).json()
+                                                  verify=self._sslCer,
+                                                  timeout=timeout).json()
             else:
-                json_Response = requests.post(token_url, json=json_tokenReq, verify=self.certfile).json()
+                json_Response = requests.post(token_url, json=json_tokenReq, verify=self.certfile, timeout=timeout).json()
                 
             
             return json_Response
